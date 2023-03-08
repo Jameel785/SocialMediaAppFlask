@@ -15,7 +15,19 @@ def home():
 # Access the login page with the login route
 @app.route("/login", methods=['GET', 'POST'])
 def login():
+    # Creates an instance of the login form
     form = LoginForm()
+
+    # If the form has been submitted and is valid,
+    # Flash a login success message and redirect the user to the home page
+    if form.validate_on_submit():
+        if form.email.data == 'student1@lydiardparkacademy.org.uk' and form.password.data == 'password':
+            flash('You have been logged in', 'success')
+            return redirect(url_for('home'))
+        else:
+            flash('Login Unsuccessful. Please check username and password', 'danger')
+
+    # Render the login template with the form instance
     return render_template("login.html", title="login", form=form)
 
 # Access the register page with the register route
