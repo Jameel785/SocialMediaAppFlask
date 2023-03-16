@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, SubmitField
 from wtforms.validators import ValidationError
+from schoolgram.models import User
 
 #define RegistrationForm class
 class RegistrationForm(FlaskForm):
@@ -69,6 +70,16 @@ class RegistrationForm(FlaskForm):
     teacher_reg_key = StringField('Teacher Registration Key', validators=[validate_teacher_reg_key])
     moderator_reg_key = StringField('Moderator Registration Key', validators=[validate_moderator_reg_key])
     submit = SubmitField('Sign Up')
+
+    def validate_username(self, username):
+        user = User.query.filter_by(username=username.data).first()
+        if user:
+            raise ValidationError('[Username is already taken. Please choose a different one]')
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user:
+            raise ValidationError('[Email is already taken. Please choose a different one]')
 
 class LoginForm(FlaskForm):
     def data_required(self, field):
