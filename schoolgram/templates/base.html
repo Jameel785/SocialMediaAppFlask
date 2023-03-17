@@ -37,21 +37,37 @@
             <!-- list of link options which are connected to their specific urls -->
             <div class="collapse navbar-collapse" id="navbarNav">
                  <ul class="navbar-nav">
-                     <li class="nav-item">
-                         <a href="{{ url_for('home') }}" class="nav-link">
-                             Home
-                         </a>
-                     </li>
-                     <li class="nav-item">
-                         <a href="{{ url_for('login') }}" class="nav-link">
-                             Login
-                         </a>
-                     </li>
-                     <li class="nav-item">
-                         <a href="{{ url_for('register') }}" class="nav-link">
-                             Register
-                         </a>
-                     </li>
+                     <!-- Checks if the current user is authenticated -->
+                     {% if current_user.is_authenticated %}
+                        <!-- if the user is authenticated, display the home and logout links -->
+                        <li class="nav-item">
+                             <a href="{{ url_for('home') }}" class="nav-link">
+                                 Home
+                             </a>
+                        </li>
+                        <li class="nav-item">
+                             <a href="{{ url_for('account') }}" class="nav-link">
+                                 Account
+                             </a>
+                         </li>
+                        <li class="nav-item">
+                             <a href="{{ url_for('logout') }}" class="nav-link">
+                                 Logout
+                             </a>
+                        </li>
+                     {% else %}
+                        <!-- if the user is not authenticated, display the home, login and register links -->
+                         <li class="nav-item">
+                             <a href="{{ url_for('login') }}" class="nav-link">
+                                 Login
+                             </a>
+                         </li>
+                         <li class="nav-item">
+                             <a href="{{ url_for('register') }}" class="nav-link">
+                                 Register
+                             </a>
+                         </li>
+                     {% endif %}
                  </ul>
             </div>
         </div>
