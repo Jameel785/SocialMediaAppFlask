@@ -39,7 +39,7 @@
                  <ul class="navbar-nav">
                      <!-- Checks if the current user is authenticated -->
                      {% if current_user.is_authenticated %}
-                        <!-- if the user is authenticated, display the home and logout links -->
+                        <!-- if the user is authenticated, display the home, account and logout links -->
                         <li class="nav-item">
                              <a href="{{ url_for('home') }}" class="nav-link">
                                  Home
@@ -56,7 +56,7 @@
                              </a>
                         </li>
                      {% else %}
-                        <!-- if the user is not authenticated, display the home, login and register links -->
+                        <!-- if the user is not authenticated, display the login and register links -->
                          <li class="nav-item">
                              <a href="{{ url_for('login') }}" class="nav-link">
                                  Login
