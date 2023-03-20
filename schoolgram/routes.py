@@ -29,8 +29,9 @@ def login():
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             # Logs in and creates a user session
             login_user(user)
-            # Redirect to the home page after a successful login
-            return redirect(url_for('home'))
+            # Retrieves 'next' query parameter and redirects to it if it exists
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('home'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
 
