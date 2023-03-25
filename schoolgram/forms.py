@@ -1,4 +1,6 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
+from flask_login import current_user
 from wtforms import StringField, PasswordField, SelectField, SubmitField
 from wtforms.validators import ValidationError
 from schoolgram.models import User
@@ -97,3 +99,30 @@ class LoginForm(FlaskForm):
     email = StringField('Email', validators=[data_required, validate_lydiard_email])
     password = PasswordField('Password', validators=[data_required])
     submit = SubmitField('Login')
+
+class UpdateAccountForm(FlaskForm):
+    # Check if field data exists
+    def data_required(self, field):
+        if not field.data:
+            raise ValidationError('[This field is required]')
+
+    # Check if username length is within range
+    def validate_username_length(self, field):
+        min_length = 4
+        max_length = 20
+        if len(field.data) < min_length or len(field.data) > max_length:
+            raise ValidationError(f'[Username must be between {min_length} and {max_length} characters long]')
+
+
+    # Define form fields with validators
+    username = StringField('Username', validators=[data_required, validate_username_length])
+    picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png'])])
+    submit = SubmitField('Update')
+
+    def validate_username(self, username):
+        if username.data != current_user.username:
+            # Query the database for a user with the provided username
+            user = User.query.filter_by(username=username.data).first()
+            # If a user with the username already exists, raise a validation error
+            if user:
+                raise ValidationError('[Username is already taken. Please choose a different one]')

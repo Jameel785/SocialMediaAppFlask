@@ -1,6 +1,8 @@
+import os
+import secrets
 from flask import render_template, request, url_for, flash, redirect
 from schoolgram import app, db, bcrypt
-from schoolgram.forms import RegistrationForm, LoginForm
+from schoolgram.forms import RegistrationForm, LoginForm, UpdateAccountForm
 from schoolgram.models import User, Post, Comment, Like
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -69,7 +71,37 @@ def logout():
     # Redirects to the login page after logging out
     return redirect(url_for('login'))
 
-@app.route("/account")
+def save_profile_picture(form_picture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename)
+    picture_fn = random_hex + f_ext
+    picture_path = os.path.join(app.root_path, 'static/profile_pics', picture_fn)
+    form_picture.save(picture_path)
+
+    prev_picture = os.path.join(app.root_path, 'static/profile_pics', current_user.image_file)
+    if os.path.exists(prev_picture) and current_user.image_file != 'default.jpg':
+        os.remove(prev_picture)
+
+    return picture_fn
+
+@app.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
-    return render_template("account.html", title="Account")
+    # Creates and instance of the Update Account Form
+    form = UpdateAccountForm()
+    # Updates the username of the current user and commits changes to the database if form data is valid
+    if form.validate_on_submit():
+        if form.picture.data:
+            picture_file = save_profile_picture(form.picture.data)
+            current_user.image_file = picture_file
+        current_user.username = form.username.data
+        db.session.commit()
+        flash('Your account has been updated', 'success')
+        return redirect(url_for('account'))
+    # Sets the default value of the username field to the current user's username if the request was a GET method
+    elif request.method == 'GET':
+        form.username.data = current_user.username
+    # Creates a URL for the profile image
+    image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
+    # Renders the account.html file with the given title and image file
+    return render_template("account.html", title="Account", image_file=image_file, form=form)

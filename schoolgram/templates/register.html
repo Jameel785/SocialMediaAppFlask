@@ -1,129 +1,131 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <form method="POST" action="">
-    <!-- adds hidden input fields to the form for CSRF protection -->
-    {{ form.hidden_tag() }}
-    <fieldset class="form-group">
-      <legend class="border-bottom mb-4">Sign Up For SchoolGram</legend>
-      <div class="form-group">
-        {{ form.username.label(class="form-control-label") }}
+  <div class="content-section">
+      <form method="POST" action="">
+      <!-- adds hidden input fields to the form for CSRF protection -->
+      {{ form.hidden_tag() }}
+      <fieldset class="form-group">
+        <legend class="border-bottom mb-4">Sign Up For SchoolGram</legend>
+        <div class="form-group">
+          {{ form.username.label(class="form-control-label") }}
 
-        <!-- Checks if there are errors for the username field -->
-        <!-- Adds is-invalid class to the form field if there are errors, -->
-        <!-- Then display all the error messages -->
-        {% if form.username.errors %}
-          {{ form.username(class="form-control form-control-lg is-invalid") }}
-          <div class="invalid-feedback">
-            {% for error in form.username.errors %}
-            <span>{{ error }}</span>
-            {% endfor %}
-          </div>
-        {% else %}
-          {{ form.username(class="form-control form-control-lg") }}
-        {% endif %}
-      </div>
-      <div class="form-group">
-        {{ form.email.label(class="form-control-label") }}
+          <!-- Checks if there are errors for the username field -->
+          <!-- Adds is-invalid class to the form field if there are errors, -->
+          <!-- Then display all the error messages -->
+          {% if form.username.errors %}
+            {{ form.username(class="form-control form-control-lg is-invalid") }}
+            <div class="invalid-feedback">
+              {% for error in form.username.errors %}
+              <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form.username(class="form-control form-control-lg") }}
+          {% endif %}
+        </div>
+        <div class="form-group">
+          {{ form.email.label(class="form-control-label") }}
 
-        <!-- Checks if there are errors for the email field -->
-        <!-- Adds is-invalid class to the form field if there are errors, -->
-        <!-- Then display all the error messages -->
-        {% if form.email.errors %}
-          {{ form.email(class="form-control form-control-lg is-invalid") }}
-          <div class="invalid-feedback">
-            {% for error in form.email.errors %}
-            <span>{{ error }}</span>
-            {% endfor %}
-          </div>
-        {% else %}
-          {{ form.email(class="form-control form-control-lg") }}
-        {% endif %}
-      </div>
-      <div class="form-group">
-        {{ form.password.label(class="form-control-label") }}
+          <!-- Checks if there are errors for the email field -->
+          <!-- Adds is-invalid class to the form field if there are errors, -->
+          <!-- Then display all the error messages -->
+          {% if form.email.errors %}
+            {{ form.email(class="form-control form-control-lg is-invalid") }}
+            <div class="invalid-feedback">
+              {% for error in form.email.errors %}
+              <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form.email(class="form-control form-control-lg") }}
+          {% endif %}
+        </div>
+        <div class="form-group">
+          {{ form.password.label(class="form-control-label") }}
 
-        <!-- Checks if there are errors for the password field -->
-        <!-- Adds is-invalid class to the form field if there are errors, -->
-        <!-- Then display all the error messages -->
-        {% if form.password.errors %}
-          {{ form.password(class="form-control form-control-lg is-invalid") }}
-          <div class="invalid-feedback">
-            {% for error in form.password.errors %}
-            <span>{{ error }}</span>
-            {% endfor %}
-          </div>
-        {% else %}
-          {{ form.password(class="form-control form-control-lg") }}
-        {% endif %}
-      </div>
-      <div class="form-group">
-        {{ form.confirm_password.label(class="form-control-label") }}
+          <!-- Checks if there are errors for the password field -->
+          <!-- Adds is-invalid class to the form field if there are errors, -->
+          <!-- Then display all the error messages -->
+          {% if form.password.errors %}
+            {{ form.password(class="form-control form-control-lg is-invalid") }}
+            <div class="invalid-feedback">
+              {% for error in form.password.errors %}
+              <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form.password(class="form-control form-control-lg") }}
+          {% endif %}
+        </div>
+        <div class="form-group">
+          {{ form.confirm_password.label(class="form-control-label") }}
 
-        <!-- Checks if there are errors for the confirm_password field -->
-        <!-- Adds is-invalid class to the form field if there are errors, -->
-        <!-- Then display all the error messages -->
-        {% if form.confirm_password.errors %}
-          {{ form.confirm_password(class="form-control form-control-lg is-invalid") }}
-          <div class="invalid-feedback">
-            {% for error in form.confirm_password.errors %}
-            <span>{{ error }}</span>
-            {% endfor %}
-          </div>
-        {% else %}
-          {{ form.confirm_password(class="form-control form-control-lg") }}
-        {% endif %}
-      </div>
-      <div class="form-group">
-        <!-- creates a label and a select field for the role field -->
-        {{ form.role.label(class="form-control-label") }}
-        {{ form.role(id="role", class="form-control form-control-lg") }}
-      </div>
-      <div class="form-group" id="teacher-reg-key-field">
-        {{ form.teacher_reg_key.label(class="form-control-label") }}
+          <!-- Checks if there are errors for the confirm_password field -->
+          <!-- Adds is-invalid class to the form field if there are errors, -->
+          <!-- Then display all the error messages -->
+          {% if form.confirm_password.errors %}
+            {{ form.confirm_password(class="form-control form-control-lg is-invalid") }}
+            <div class="invalid-feedback">
+              {% for error in form.confirm_password.errors %}
+              <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form.confirm_password(class="form-control form-control-lg") }}
+          {% endif %}
+        </div>
+        <div class="form-group">
+          <!-- creates a label and a select field for the role field -->
+          {{ form.role.label(class="form-control-label") }}
+          {{ form.role(id="role", class="form-control form-control-lg") }}
+        </div>
+        <div class="form-group" id="teacher-reg-key-field">
+          {{ form.teacher_reg_key.label(class="form-control-label") }}
 
-        <!-- Checks if there are errors for the teacher_reg_key field -->
-        <!-- Adds is-invalid class to the form field if there are errors, -->
-        <!-- Then display all the error messages -->
-        {% if form.teacher_reg_key.errors %}
-          {{ form.teacher_reg_key(class="form-control form-control-lg is-invalid") }}
-          <div class="invalid-feedback">
-            {% for error in form.teacher_reg_key.errors %}
-            <span>{{ error }}</span>
-            {% endfor %}
-          </div>
-        {% else %}
-          {{ form.teacher_reg_key(class="form-control form-control-lg") }}
-        {% endif %}
-      </div>
-      <div class="form-group" id="moderator-reg-key-field">
-        {{ form.moderator_reg_key.label(class="form-control-label") }}
+          <!-- Checks if there are errors for the teacher_reg_key field -->
+          <!-- Adds is-invalid class to the form field if there are errors, -->
+          <!-- Then display all the error messages -->
+          {% if form.teacher_reg_key.errors %}
+            {{ form.teacher_reg_key(class="form-control form-control-lg is-invalid") }}
+            <div class="invalid-feedback">
+              {% for error in form.teacher_reg_key.errors %}
+              <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form.teacher_reg_key(class="form-control form-control-lg") }}
+          {% endif %}
+        </div>
+        <div class="form-group" id="moderator-reg-key-field">
+          {{ form.moderator_reg_key.label(class="form-control-label") }}
 
-        <!-- Checks if there are errors for the moderator_reg_key field -->
-        <!-- Adds is-invalid class to the form field if there are errors, -->
-        <!-- Then display all the error messages -->
-        {% if form.moderator_reg_key.errors %}
-          {{ form.moderator_reg_key(class="form-control form-control-lg is-invalid") }}
-          <div class="invalid-feedback">
-            {% for error in form.moderator_reg_key.errors %}
-            <span>{{ error }}</span>
-            {% endfor %}
-          </div>
-        {% else %}
-          {{ form.moderator_reg_key(class="form-control form-control-lg") }}
-        {% endif %}
+          <!-- Checks if there are errors for the moderator_reg_key field -->
+          <!-- Adds is-invalid class to the form field if there are errors, -->
+          <!-- Then display all the error messages -->
+          {% if form.moderator_reg_key.errors %}
+            {{ form.moderator_reg_key(class="form-control form-control-lg is-invalid") }}
+            <div class="invalid-feedback">
+              {% for error in form.moderator_reg_key.errors %}
+              <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form.moderator_reg_key(class="form-control form-control-lg") }}
+          {% endif %}
+        </div>
+      </fieldset><br>
+      <!-- creates the submit button -->
+      <div class="form_group">
+        {{ form.submit(class="btn btn-outline-info") }}
       </div>
-    </fieldset><br>
-    <!-- creates the submit button -->
-    <div class="form_group">
-      {{ form.submit(class="btn btn-outline-info") }}
-    </div>
-  </form>
-  <!-- link to the login page for users who already have an account -->
-  <div class="border-top pt-3">
-    <small class="text-muted">
-      Already have an account <a class="ml-2" href="{{ url_for('login') }}">Sign In</a>
-    </small>
+      </form>
+      <!-- link to the login page for users who already have an account -->
+      <div class="border-top pt-3">
+        <small class="text-muted">
+          Already have an account <a class="ml-2" href="{{ url_for('login') }}">Sign In</a>
+        </small>
+      </div>
   </div>
 
   <script>
