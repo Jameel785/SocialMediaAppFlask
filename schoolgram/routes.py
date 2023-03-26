@@ -1,8 +1,9 @@
 import os
 import secrets
+from functools import wraps
 from flask import render_template, request, url_for, flash, redirect
 from schoolgram import app, db, bcrypt
-from schoolgram.forms import RegistrationForm, LoginForm, UpdateAccountForm
+from schoolgram.forms import RegistrationForm, LoginForm, UpdateAccountForm, MessagePostForm, ImagePostForm
 from schoolgram.models import User, Post, Comment, Like
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -72,13 +73,20 @@ def logout():
     return redirect(url_for('login'))
 
 def save_profile_picture(form_picture):
+    # Generates random 8-byte hexadecimal string
     random_hex = secrets.token_hex(8)
+    # Extracts file extension from uploaded image's filename
     _, f_ext = os.path.splitext(form_picture.filename)
+    # Concatenates random hexadecimal string with file extension to create a new unique file name
     picture_fn = random_hex + f_ext
+    # Constructs the file path where the profile picture will be saved
     picture_path = os.path.join(app.root_path, 'static/profile_pics', picture_fn)
+    # Saves uploaded image file to specified file path
     form_picture.save(picture_path)
 
     prev_picture = os.path.join(app.root_path, 'static/profile_pics', current_user.image_file)
+    # Checks if profile picture exists on the server and removes it
+    # Default profile picture will be ignored
     if os.path.exists(prev_picture) and current_user.image_file != 'default.jpg':
         os.remove(prev_picture)
 
@@ -91,8 +99,11 @@ def account():
     form = UpdateAccountForm()
     # Updates the username of the current user and commits changes to the database if form data is valid
     if form.validate_on_submit():
+        # Checks if user has uploaded new profile picture through the form
         if form.picture.data:
+            # Calls the save_profile_picture function which will return the unique file name
             picture_file = save_profile_picture(form.picture.data)
+            # Updates the users image file with the new file name
             current_user.image_file = picture_file
         current_user.username = form.username.data
         db.session.commit()
@@ -105,3 +116,39 @@ def account():
     image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
     # Renders the account.html file with the given title and image file
     return render_template("account.html", title="Account", image_file=image_file, form=form)
+
+def teacher_required(route_function):
+    # Preserves the meta data of the original route function
+    @wraps(route_function)
+    # Defines function that accepts any number of positional and keyword arguments
+    def decorated_function(*args, **kwargs):
+        # Checks if the current user is authenticated and has a role of teacher
+        if current_user.is_authenticated and current_user.role == 'teacher':
+            # Calls the original route function with the given arguments
+            return route_function(*args, **kwargs)
+        else:
+            # Will display an error message and redirect to the home page
+            flash('You must be logged in as a teacher to access this page', 'danger')
+            return redirect(url_for('home'))
+    return decorated_function
+
+@app.route("/create_post", methods=['GET', 'POST'])
+@login_required
+@teacher_required
+def create_post():
+    # Instantiates the message and image forms
+    message_form = MessagePostForm()
+    image_form = ImagePostForm()
+
+    # Checks if the message form has been submitted and is valid
+    if message_form.validate_on_submit() and message_form.post_type.data == 'message_post':
+        # Prompts the user their message has been posted
+        flash('Your message has been posted', 'success')
+        return redirect(url_for('home'))
+
+    # Checks if the image form has been submitted and is valid
+    if image_form.validate_on_submit() and image_form.post_type.data == 'image_post':
+        # Prompts the user their image has been posted
+        flash('Your image has been posted', 'success')
+        return redirect(url_for('home'))
+    return render_template('create_post.html', title='Create Message Post', message_form=message_form, image_form=image_form)

@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileAllowed
+from flask_wtf.file import FileField, FileAllowed, FileRequired
 from flask_login import current_user
-from wtforms import StringField, PasswordField, SelectField, SubmitField
+from wtforms import StringField, PasswordField, SelectField, SubmitField, TextAreaField, HiddenField
 from wtforms.validators import ValidationError
 from schoolgram.models import User
 
@@ -116,7 +116,7 @@ class UpdateAccountForm(FlaskForm):
 
     # Define form fields with validators
     username = StringField('Username', validators=[data_required, validate_username_length])
-    picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png'])])
+    picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
     submit = SubmitField('Update')
 
     def validate_username(self, username):
@@ -126,3 +126,26 @@ class UpdateAccountForm(FlaskForm):
             # If a user with the username already exists, raise a validation error
             if user:
                 raise ValidationError('[Username is already taken. Please choose a different one]')
+
+class MessagePostForm(FlaskForm):
+    # Check if field data exists
+    def data_required(self, field):
+        if not field.data:
+            raise ValidationError('[This field is required]')
+
+    # Define form fields with validators
+    message = TextAreaField('Message', validators=[data_required])
+    post_type = HiddenField(default='message_post')
+    submit = SubmitField('Post')
+
+class ImagePostForm(FlaskForm):
+    # Check if field data exists
+    def data_required(self, field):
+        if not field.data:
+            raise ValidationError('[This field is required]')
+
+    # Define form fields with validators
+    image = FileField('Image', validators=[FileRequired(), FileAllowed(['jpg','png', 'jpeg'])])
+    caption = StringField('Caption', validators=[data_required])
+    post_type = HiddenField(default='image_post')
+    submit = SubmitField('Post')
