@@ -1,17 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-  {% for post in posts %}
     {% if post.post_type == 'message_post' %}
       <div class="container-md">
         <div class="media content-section">
           <div class="d-flex align-items-center post-info">
             <img class="rounded-circle post-profile-pic mr-3" src="{{ url_for('static', filename='profile_pics/' + post.user.image_file) }}">
             <h1 class="mr-2">{{ post.user.username }}</h1>
+            {% if post.user == current_user or current_user.role == 'moderator' %}
+               <form method="POST" action="{{ url_for('delete_post', post_id=post.id) }}">
+                   <button type="submit" class="btn btn-danger btn-sm delete-button">Delete</button>
+               </form>
+            {% endif %}
           </div>
           <div class="media-body">
             <p class="message-post-content">{{ post.message }}</p>
-            <small class="text-muted"><a href="{{ url_for('post', post_id=post.id) }}">view comments</a></small><br>
             <small class="text-muted">{{ post.date_posted.strftime("%H:%M %d/%m/%Y") }}</small>
           </div>
         </div><br>
@@ -22,15 +25,18 @@
           <div class="d-flex align-items-center post-info">
             <img class="rounded-circle post-profile-pic mr-3" src="{{ url_for('static', filename='profile_pics/' + post.user.image_file) }}">
             <h1 class="mr-2">{{ post.user.username }}</h1>
+            {% if post.user == current_user or current_user.role == 'moderator' %}
+               <form method="POST" action="{{ url_for('delete_post', post_id=post.id) }}">
+                   <button type="submit" class="btn btn-danger btn-sm delete-button">Delete</button>
+               </form>
+            {% endif %}
           </div>
           <div class="media-body">
             <img class="post-image" src="{{ url_for('static', filename='post_images/' + post.image_file) }}">
             <p class="message-post-content">{{ post.caption }}</p>
-            <small class="text-muted"><a href="{{ url_for('post', post_id=post.id) }}">view comments</a></small><br>
             <small class="text-muted">{{ post.date_posted.strftime("%H:%M %d/%m/%Y") }}</small>
           </div>
         </div><br>
       </div>
     {% endif %}
-  {% endfor %}
 {% endblock %}

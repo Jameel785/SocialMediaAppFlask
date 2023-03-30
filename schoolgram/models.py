@@ -26,6 +26,7 @@ class Post(db.Model):
     message = db.Column(db.Text)
     caption = db.Column(db.String(200))
     image_file = db.Column(db.String(20))
+    post_type = db.Column(db.String(60), nullable=False, default='message_post')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     likes = db.relationship('Like', backref='post', lazy=True)
     comments = db.relationship('Comment', backref='post', lazy=True)

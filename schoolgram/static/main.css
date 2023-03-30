@@ -34,3 +34,28 @@ body {
 .profile-heading {
     font-size: 2.5rem;
 }
+
+.post-profile-pic {
+    height: 30px;
+    width: 30px;
+    margin-right: 16px;
+}
+
+.message-post-content {
+    white-space: pre-line;
+}
+
+.post-info {
+  padding-bottom: 1px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #ccc;
+}
+
+.post-image {
+  max-width: 100%;
+  height: auto;
+}
+
+.delete-button {
+    margin-left: auto;
+}

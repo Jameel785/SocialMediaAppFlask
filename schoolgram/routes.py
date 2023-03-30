@@ -1,7 +1,7 @@
 import os
 import secrets
 from functools import wraps
-from flask import render_template, request, url_for, flash, redirect
+from flask import render_template, request, url_for, flash, redirect, abort
 from schoolgram import app, db, bcrypt
 from schoolgram.forms import RegistrationForm, LoginForm, UpdateAccountForm, MessagePostForm, ImagePostForm
 from schoolgram.models import User, Post, Comment, Like
@@ -11,7 +11,24 @@ from flask_login import login_user, current_user, logout_user, login_required
 @app.route("/home")
 @login_required
 def home():
-    return render_template("home.html", title="home")
+    # Fetch all posts from the database and store them in the posts list
+    posts = Post.query.all()
+    # Initialise swapped flag to true
+    swapped = True
+    while swapped:
+        # Reset swapped flag to false before each iteration
+        swapped = False
+        # Iterate from 1 to the length of the posts list
+        for index in range(1, len(posts)):
+            # Compare date posted attribute of the current and previous posts
+            if posts[index-1].date_posted < posts[index].date_posted:
+                # If previous post is older than current post, swap their positions
+                temp_post = posts[index-1]
+                posts[index-1] = posts[index]
+                posts[index] = temp_post
+                # Set swapped flag to true to indicate swap was made
+                swapped = True
+    return render_template("home.html", title="Home", posts=posts)
 
 # Access the login page with the login route
 @app.route("/login", methods=['GET', 'POST'])
@@ -132,6 +149,20 @@ def teacher_required(route_function):
             return redirect(url_for('home'))
     return decorated_function
 
+def save_post_image(form_image):
+    # Generates random 8-byte hexadecimal string
+    random_hex = secrets.token_hex(8)
+    # Extracts file extension from uploaded image's filename
+    _, f_ext = os.path.splitext(form_image.filename)
+    # Concatenates random hexadecimal string with file extension to create a new unique file name
+    image_fn = random_hex + f_ext
+    # Constructs the file path where the image file will be saved
+    image_path = os.path.join(app.root_path, 'static/post_images', image_fn)
+    # Saves uploaded image file to specified file path
+    form_image.save(image_path)
+
+    return image_fn
+
 @app.route("/create_post", methods=['GET', 'POST'])
 @login_required
 @teacher_required
@@ -142,13 +173,42 @@ def create_post():
 
     # Checks if the message form has been submitted and is valid
     if message_form.validate_on_submit() and message_form.post_type.data == 'message_post':
+        message_post = Post(message=message_form.message.data, post_type='message_post', user=current_user)
+        db.session.add(message_post)
+        db.session.commit()
         # Prompts the user their message has been posted
         flash('Your message has been posted', 'success')
         return redirect(url_for('home'))
 
     # Checks if the image form has been submitted and is valid
     if image_form.validate_on_submit() and image_form.post_type.data == 'image_post':
+        # Saves the uploaded image file to the server
+        image_file = save_post_image(image_form.image.data)
+        # Create image post object with users input
+        image_post = Post(image_file=image_file, caption=image_form.caption.data, post_type='image_post', user=current_user)
+
+        # Add image post to the database session and commit the changes
+        db.session.add(image_post)
+        db.session.commit()
+
         # Prompts the user their image has been posted
         flash('Your image has been posted', 'success')
         return redirect(url_for('home'))
     return render_template('create_post.html', title='Create Message Post', message_form=message_form, image_form=image_form)
+
+@app.route("/post/<int:post_id>", methods=['GET', 'POST'])
+@login_required
+def post(post_id):
+    post = Post.query.get_or_404(post_id)
+    return render_template('post.html', post=post)
+
+@app.route("/post/<int:post_id>/delete", methods=['POST'])
+@login_required
+def delete_post(post_id):
+    post = Post.query.get_or_404(post_id)
+    if post.user != current_user or current_user.role != 'moderator':
+        abort(403)
+    db.session.delete(post)
+    db.session.commit()
+    flash('Your post has been deleted', 'success')
+    return redirect(url_for('home'))
