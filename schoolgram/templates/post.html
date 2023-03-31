@@ -7,9 +7,10 @@
           <div class="d-flex align-items-center post-info">
             <img class="rounded-circle post-profile-pic mr-3" src="{{ url_for('static', filename='profile_pics/' + post.user.image_file) }}">
             <h1 class="mr-2">{{ post.user.username }}</h1>
+            <!-- Will display only if the user is the owner of the post or if the user is logged in as a moderator-->
             {% if post.user == current_user or current_user.role == 'moderator' %}
-               <form method="POST" action="{{ url_for('delete_post', post_id=post.id) }}">
-                   <button type="submit" class="btn btn-danger btn-sm delete-button">Delete</button>
+               <form class="delete-button" method="POST" action="{{ url_for('delete_post', post_id=post.id) }}">
+                   <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                </form>
             {% endif %}
           </div>
@@ -25,9 +26,10 @@
           <div class="d-flex align-items-center post-info">
             <img class="rounded-circle post-profile-pic mr-3" src="{{ url_for('static', filename='profile_pics/' + post.user.image_file) }}">
             <h1 class="mr-2">{{ post.user.username }}</h1>
+            <!-- Will display only if the user is the owner of the post or if the user is logged in as a moderator-->
             {% if post.user == current_user or current_user.role == 'moderator' %}
-               <form method="POST" action="{{ url_for('delete_post', post_id=post.id) }}">
-                   <button type="submit" class="btn btn-danger btn-sm delete-button">Delete</button>
+               <form class="delete-button" method="POST" action="{{ url_for('delete_post', post_id=post.id) }}">
+                   <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                </form>
             {% endif %}
           </div>
@@ -39,4 +41,53 @@
         </div><br>
       </div>
     {% endif %}
+
+    <div class="container-md">
+        <div class="content-section">
+            <form method="POST" enctype="multipart/form-data">
+                <!-- adds hidden input fields to the form for CSRF protection -->
+                {{ form.hidden_tag() }}
+                <fieldset class="form-group">
+                  <legend class="border-bottom mb-4">Add a Comment</legend>
+                  <div class="form-group">
+                    {{ form.content.label(class="form-control-label") }}
+
+                    <!-- Checks if there are errors for the comment content field -->
+                    <!-- Adds is-invalid class to the form field if there are errors, -->
+                    <!-- Then display all the error messages -->
+                    {% if form.content.errors %}
+                      {{ form.content(class="form-control form-control-lg is-invalid") }}
+                      <div class="invalid-feedback">
+                        {% for error in form.content.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      {{ form.content(class="form-control form-control-lg") }}
+                    {% endif %}
+                  </div>
+                </fieldset><br>
+                <!-- creates the submit button -->
+                <div class="form_group">
+                  {{ form.submit(class="btn btn-outline-info") }}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="container-md">
+        <h3>Comments</h3>
+        {% for comment in comments %}
+            <div class="media content-section">
+                <div class="d-flex align-items-center comment-info">
+                    <img class="rounded-circle post-profile-pic mr-3" src="{{ url_for('static', filename='profile_pics/' + comment.user.image_file) }}">
+                    <h5 class="mr-2">{{ comment.user.username }}</h5>
+                    <small class="text-muted" style="margin-left: 10px;">{{ comment.date_posted.strftime("%H:%M %d/%m/%Y") }}</small>
+                </div>
+                <div class="media-body">
+                    <p>{{ comment.content }}</p>
+                </div>
+            </div><br>
+        {% endfor %}
+    </div>
 {% endblock %}

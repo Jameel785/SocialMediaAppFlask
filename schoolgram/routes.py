@@ -3,7 +3,7 @@ import secrets
 from functools import wraps
 from flask import render_template, request, url_for, flash, redirect, abort
 from schoolgram import app, db, bcrypt
-from schoolgram.forms import RegistrationForm, LoginForm, UpdateAccountForm, MessagePostForm, ImagePostForm
+from schoolgram.forms import RegistrationForm, LoginForm, UpdateAccountForm, MessagePostForm, ImagePostForm, CommentForm
 from schoolgram.models import User, Post, Comment, Like
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -196,18 +196,58 @@ def create_post():
         return redirect(url_for('home'))
     return render_template('create_post.html', title='Create Message Post', message_form=message_form, image_form=image_form)
 
+# Route expects integer parameter of post_id
 @app.route("/post/<int:post_id>", methods=['GET', 'POST'])
 @login_required
 def post(post_id):
+    # Creates an instance of the comment form
+    form = CommentForm()
+
+    # Queries the database for a post object with the given post_id
+    # Raises a 404 error if the post with that ID is not found
     post = Post.query.get_or_404(post_id)
-    return render_template('post.html', post=post)
+    # Fetch the comments with post ID of the post from the database and store them in the comments list
+    comments = Comment.query.filter_by(post_id=post.id).all()
+    # Initialise swapped flag to true
+    swapped = True
+    while swapped:
+        # Reset swapped flag to false before each iteration
+        swapped = False
+        # Iterate from 1 to the length of the posts list
+        for index in range(1, len(comments)):
+            # Compare date posted attribute of the current and previous posts
+            if comments[index - 1].date_posted < comments[index].date_posted:
+                # If previous post is older than current post, swap their positions
+                temp_post = comments[index - 1]
+                comments[index - 1] = comments[index]
+                comments[index] = temp_post
+                # Set swapped flag to true to indicate swap was made
+                swapped = True
+
+    if form.validate_on_submit():
+        comment = Comment(content=form.content.data, user_id=current_user.id, post_id=post_id)
+        db.session.add(comment)
+        db.session.commit()
+        flash('Your comment has been posted', 'success')
+        return redirect(url_for('post', post_id=post_id))
+    return render_template('post.html', post=post, form=form, comments=comments)
 
 @app.route("/post/<int:post_id>/delete", methods=['POST'])
 @login_required
 def delete_post(post_id):
+    # Queries the database for a post object with the given post_id
+    # Raises a 404 error if the post with that ID is not found
     post = Post.query.get_or_404(post_id)
-    if post.user != current_user or current_user.role != 'moderator':
+    # Will raises a forbidden access error if the user is not the owner of the post or a moderator
+    if post.user != current_user and current_user.role != 'moderator':
         abort(403)
+
+    # Deletes the associated comments before deleting the post
+    comments = Comment.query.filter_by(post_id=post_id).all()
+    for comment in comments:
+        db.session.delete(comment)
+
+    # If user has the required permissions, deletes post object and commits changes to the database
     db.session.delete(post)
     db.session.commit()
     flash('Your post has been deleted', 'success')

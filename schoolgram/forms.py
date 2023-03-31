@@ -149,3 +149,13 @@ class ImagePostForm(FlaskForm):
     caption = StringField('Caption', validators=[data_required])
     post_type = HiddenField(default='image_post')
     submit = SubmitField('Post')
+
+class CommentForm(FlaskForm):
+    # Check if field data exists
+    def data_required(self, field):
+        if not field.data:
+            raise ValidationError('[This field is required]')
+
+    # Define form fields with validators
+    content = TextAreaField('Comment', validators=[data_required])
+    submit = SubmitField('Post Comment')
