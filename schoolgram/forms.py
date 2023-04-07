@@ -159,3 +159,13 @@ class CommentForm(FlaskForm):
     # Define form fields with validators
     content = TextAreaField('Comment', validators=[data_required])
     submit = SubmitField('Post Comment')
+
+class BannedWordForm(FlaskForm):
+    # Check if field data exists
+    def data_required(self, field):
+        if not field.data:
+            raise ValidationError('[This field is required]')
+
+    # Define form fields with validators
+    word = StringField('Word', validators=[data_required])
+    submit = SubmitField('Add')

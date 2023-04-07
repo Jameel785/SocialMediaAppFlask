@@ -61,6 +61,28 @@
                                      Logout
                                  </a>
                             </li>
+                        {% elif current_user.role == 'moderator' %}
+                            <!-- if the user is authenticated and is a moderator, display the home, account, banned words and logout links -->
+                            <li class="nav-item">
+                                 <a href="{{ url_for('home') }}" class="nav-link">
+                                     Home
+                                 </a>
+                            </li>
+                            <li class="nav-item">
+                                 <a href="{{ url_for('account') }}" class="nav-link">
+                                     Account
+                                 </a>
+                            </li>
+                            <li class="nav-item">
+                                 <a href="{{ url_for('banned_words') }}" class="nav-link">
+                                     banned_words
+                                 </a>
+                            </li>
+                            <li class="nav-item">
+                                 <a href="{{ url_for('logout') }}" class="nav-link">
+                                     Logout
+                                 </a>
+                            </li>
                         {% else %}
                             <!-- if the user is authenticated, display the home, account and logout links -->
                             <li class="nav-item">

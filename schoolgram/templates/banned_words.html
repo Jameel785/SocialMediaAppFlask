@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="content">
+        <h1>Banned Words</h1>
+
+        <div class="content-section">
+            <form method="POST">
+                <!-- adds hidden input fields to the form for CSRF protection -->
+                {{ form.hidden_tag() }}
+                <fieldset class="form-group">
+                  <legend class="border-bottom mb-4">Add Banned Word</legend>
+                  <div class="form-group">
+                    {{ form.word.label(class="form-control-label") }}
+
+                    <!-- Checks if there are errors for the word field -->
+                    <!-- Adds is-invalid class to the form field if there are errors, -->
+                    <!-- Then display all the error messages -->
+                    {% if form.word.errors %}
+                      {{ form.word(class="form-control form-control-lg is-invalid") }}
+                      <div class="invalid-feedback">
+                        {% for error in form.word.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                      </div>
+                    {% else %}
+                      {{ form.word(class="form-control form-control-lg") }}
+                    {% endif %}
+                  </div>
+                </fieldset><br>
+                <!-- creates the submit button -->
+                <div class="form_group">
+                  {{ form.submit(class="btn btn-outline-info") }}
+                </div>
+            </form>
+        </div><br>
+
+        <table>
+            <tr>
+                <th>Word</th>
+                <th>Added</th>
+                <th>Actions</th>
+            </tr>
+            <!-- creates a new row in the table for every banned word in the database -->
+            {% for word in banned_word %}
+                <tr>
+                    <td>{{ word.word }}</td>
+                    <td>{{ word.date_added.date() }}</td>
+                    <td>
+                        <a href="{{ url_for('delete_banned_word', id=word.id) }}">Delete</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}

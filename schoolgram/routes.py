@@ -3,8 +3,8 @@ import secrets
 from functools import wraps
 from flask import render_template, request, url_for, flash, redirect, abort
 from schoolgram import app, db, bcrypt
-from schoolgram.forms import RegistrationForm, LoginForm, UpdateAccountForm, MessagePostForm, ImagePostForm, CommentForm
-from schoolgram.models import User, Post, Comment, Like
+from schoolgram.forms import RegistrationForm, LoginForm, UpdateAccountForm, MessagePostForm, ImagePostForm, CommentForm, BannedWordForm
+from schoolgram.models import User, Post, Comment, Like, BannedWord
 from flask_login import login_user, current_user, logout_user, login_required
 
 # users can access the home page using the home path or default path
@@ -13,6 +13,13 @@ from flask_login import login_user, current_user, logout_user, login_required
 def home():
     # Fetch all posts from the database and store them in the posts list
     posts = Post.query.all()
+    # Initialise empty list to store the post ids that the current user has like
+    liked_post_ids = []
+    # Fetch all like instances where the user_id matches the current user's id
+    likes = Like.query.filter_by(user_id=current_user.id).all()
+    # Appends the post_id of each like instance to the list
+    for like in likes:
+        liked_post_ids.append(like.post_id)
     # Initialise swapped flag to true
     swapped = True
     while swapped:
@@ -28,7 +35,7 @@ def home():
                 posts[index] = temp_post
                 # Set swapped flag to true to indicate swap was made
                 swapped = True
-    return render_template("home.html", title="Home", posts=posts)
+    return render_template("home.html", title="Home", posts=posts, liked_post_ids=liked_post_ids)
 
 # Access the login page with the login route
 @app.route("/login", methods=['GET', 'POST'])
@@ -225,6 +232,18 @@ def post(post_id):
                 swapped = True
 
     if form.validate_on_submit():
+        # Splits the comment message into its individual words
+        split_comment = form.content.data.split()
+        # Retrieves the list of banned words from the banned word table
+        banned_word = []
+        for word in BannedWord.query.all():
+            banned_word.append(word.word)
+        # Iterates through each word in the submitted comment
+        for word in split_comment:
+            for bannedword in banned_word:
+                # If the word matches a banned word that it is replaced with hashtag symbol
+                if word == bannedword:
+                    form.content.data = form.content.data.replace(word, "#" * len(word))
         comment = Comment(content=form.content.data, user_id=current_user.id, post_id=post_id)
         db.session.add(comment)
         db.session.commit()
@@ -251,4 +270,76 @@ def delete_post(post_id):
     db.session.delete(post)
     db.session.commit()
     flash('Your post has been deleted', 'success')
+    return redirect(url_for('home'))
+
+def moderator_required(route_function):
+    # Preserves the meta data of the original route function
+    @wraps(route_function)
+    # Defines function that accepts any number of positional and keyword arguments
+    def decorated_function(*args, **kwargs):
+        # Checks if the current user is authenticated and has a role of moderator
+        if current_user.is_authenticated and current_user.role == 'moderator':
+            # Calls the original route function with the given arguments
+            return route_function(*args, **kwargs)
+        else:
+            # Will display an error message and redirect to the home page
+            flash('You must be logged in as a moderator to access this page', 'danger')
+            return redirect(url_for('home'))
+    return decorated_function
+
+@app.route("/banned_words", methods=['GET', 'POST'])
+@login_required
+@moderator_required
+def banned_words():
+    # Creates an instance of the banned word form
+    form = BannedWordForm()
+
+    # Checks if form has been submitted and data is valid
+    if form.validate_on_submit():
+        # Creates banned word object with data passed into the form
+        new_banned_word = BannedWord(word=form.word.data)
+        # Adds banned word to the database and commits the changes
+        db.session.add(new_banned_word)
+        db.session.commit()
+        flash('Banned word has been added', 'success')
+        return redirect(url_for('banned_words'))
+    elif request.method == 'GET':
+        banned_word = BannedWord.query.all()
+    return render_template('banned_words.html', form=form, banned_word=banned_word)
+
+@app.route("/banned_word/<int:id>/delete", methods=['GET', 'POST'])
+@login_required
+@moderator_required
+def delete_banned_word(id):
+    # Queries the database for a banned word object with the given ID
+    # Raises a 404 error if the banned word with that ID is not found
+    word_to_delete = BannedWord.query.get_or_404(id)
+    # Will raises a forbidden access error if the user is not a moderator
+    if current_user.role != 'moderator':
+        abort(403)
+
+    # If user has the required permissions, deletes banned word and commits changes to the database
+    db.session.delete(word_to_delete)
+    db.session.commit()
+    flash('Banned word has been deleted', 'success')
+    return redirect(url_for('banned_words'))
+
+@app.route("/post/<int:post_id>/like", methods=['GET', 'POST'])
+@login_required
+def like_post(post_id):
+    # Retrieves the post with the given post_id from the database
+    post = Post.query.get_or_404(post_id)
+    # Queries the like table to see if the current user has already liked the post
+    like = Like.query.filter_by(user_id=current_user.id, post_id=post_id).first()
+    if like:
+        # Deletes the like from the database if a like exists
+        db.session.delete(like)
+        db.session.commit()
+        flash('You unliked the post', 'success')
+    else:
+        # If a like does not exist, then a new like object is created and added to the database
+        new_like = Like(user_id=current_user.id, post_id=post_id)
+        db.session.add(new_like)
+        db.session.commit()
+        flash('You liked the post', 'success')
     return redirect(url_for('home'))

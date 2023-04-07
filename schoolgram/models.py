@@ -49,5 +49,10 @@ class Like(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
 
+class BannedWord(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    word = db.Column(db.String(20), nullable=False)
+    date_added = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
     def __repr__(self):
-        return f"Comment('{self.user_id}', '{self.post_id}')"
+        return f"BannedWord('{self.word}', '{self.date_added}')"
